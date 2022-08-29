@@ -31,12 +31,12 @@ jobs:
      runs-on: ubuntu-latest
      steps:
        - name: Download Artifact
-         uses: actions/download-artifact@main
+         uses: actions/download-artifact@master
          with:
            name: mta
-           path: ./
+           path: ./uimodule/webapp
        - name: Deploy to Cloud Foundry
-         uses: guerric-p/cf-cli-action@main
+         uses: guerric-p/cf-cli-action@master
          with:
            cf_api: ${{ secrets.CF_API }}
            cf_username: ${{ secrets.CF_USERNAME }}
