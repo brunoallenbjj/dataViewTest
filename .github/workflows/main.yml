@@ -24,7 +24,7 @@ jobs:
     - name: Disable package-lock.json
       run: npm config set package-lock false
     - name: Build MTA
-      run: mbt build -p cf
+      run: npm run build:mta
     - name: Upload Artifact
       uses: actions/upload-artifact@master	
       with:	
