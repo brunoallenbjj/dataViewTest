@@ -14,7 +14,7 @@ build-parameters:
 modules:
   - name: products-srv
     type: nodejs
-    path: 
+    path:
     parameters:
       buildpack: nodejs_buildpack
     build-parameters:
