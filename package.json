@@ -35,6 +35,9 @@
     "mbt": "^1.2.7",
     "@sapui5/ts-types": "^1.96.0"
   },
+ "engines": {
+    "node": "^16"
+    },
   "ui5": {
     "dependencies": [
       "ui5-middleware-livereload",
