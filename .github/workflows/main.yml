@@ -31,7 +31,7 @@ jobs:
      runs-on: ubuntu-latest
      steps:
        - name: Download Artifact
-         uses: actions/download-artifact@maain
+         uses: actions/download-artifact@main
          with:
            name: mta
            path: ./
