@@ -30,11 +30,6 @@ jobs:
      needs: build
      runs-on: ubuntu-latest
      steps:
-       - name: Download Artifact
-         uses: actions/download-artifact@master
-         with:
-           name: mta
-           path: ./uimodule/webapp
        - name: Deploy to Cloud Foundry
          uses: guerric-p/cf-cli-action@master
          with:
