@@ -33,7 +33,7 @@ jobs:
          uses: actions/download-artifact@master
          with:
            name: mta
-           path: ./
+           path: ./.github/workflows
        - name: Deploy to Cloud Foundry
          uses: guerric-p/cf-cli-action@master
          with:
@@ -42,4 +42,4 @@ jobs:
            cf_password: ${{ secrets.CF_PASSWORD }}
            cf_org: ${{ secrets.CF_ORG }}
            cf_space: ${{ secrets.CF_SPACE }}
-           command: deploy ./
+           command: deploy ./.github/workflows
