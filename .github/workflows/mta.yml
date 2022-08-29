@@ -17,13 +17,29 @@ jobs:
       uses: actions/setup-node@v1
       with:
         node-version: 12
+    - name: Install MTA Build Tool
+      run: npm install -g mbt
+    # Do not generate package-lock.json
+    # See https://blogs.sap.com/2020/07/07/escaping-eintegrity-hell/
+    - name: Disable package-lock.json
+      run: npm config set package-lock false
 
-    - name: Deploy to Cloud Foundry
-      uses: guerric-p/cf-cli-action@master
-      with:
+        
+  deploy:
+     needs: build
+     runs-on: ubuntu-latest
+     steps:
+       - name: Download Artifact
+         uses: actions/download-artifact@master
+         with:
+           name: mta
+           path: ./
+       - name: Deploy to Cloud Foundry
+         uses: guerric-p/cf-cli-action@master
+         with:
            cf_api: ${{ secrets.CF_API }}
            cf_username: ${{ secrets.CF_USERNAME }}
            cf_password: ${{ secrets.CF_PASSWORD }}
            cf_org: ${{ secrets.CF_ORG }}
            cf_space: ${{ secrets.CF_SPACE }}
-           command: run-s build:mta deploy:cf
+           command: deploy ./cap-github-actions_1.0.0.mtar -f
