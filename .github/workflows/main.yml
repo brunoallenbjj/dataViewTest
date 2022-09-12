@@ -1,0 +1,65 @@
+
+name: build-mta-hana
+
+on:
+  push:
+    branches:
+      - build
+    paths-ignore:
+      - '.github/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: pwd
+        run: pwd
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 14
+          cache: 'npm'
+      - name: Check node version
+        run: node --version
+      - name: Install MTA Build Tool
+        run: npm install -g mbt
+      - name: Copy XSA .pipeline/config.yml
+        run: cp .pipeline/config-xsa.yml .pipeline/config.yml
+      - name: Copy XSA mta.yaml
+        run: cp mta-xsa.yaml mta.yaml
+      - name: Install Packages
+        run: npm install ci
+      - name: mtaBuild
+        uses: SAP/project-piper-action@master
+        with:
+          command: mtaBuild
+      - name: Upload archive file
+        uses: actions/upload-artifact@v2
+        with:
+           name: mta
+           path: bookshop-demo-xsa.mtar
+  deploy:
+    needs: build
+    runs-on: self-hosted
+    environment: 
+      name: dev
+      # url: 
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Copy XSA .pipeline/config.yml
+        run: cp .pipeline/config-xsa.yml .pipeline/config.yml
+      - uses: actions/download-artifact@v3
+        with:
+          name: mta
+      - name: Display structure of downloaded files
+        run: ls -R
+      - name: xsDeploy
+        uses: SAP/project-piper-action@master
+        with:
+          command: xsDeploy
+        env:
+          PIPER_username: ${{ secrets.PIPER_USERNAME }}
+          PIPER_password: ${{ secrets.PIPER_PASSWORD }}
