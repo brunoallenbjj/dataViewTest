@@ -1,51 +1,64 @@
-# Build Multitarget Application & Deploy it to Cloud Foundry
-name: Build MTA & Deploy it to CF
+name: build-mta-hana
 
-# Controls when the action will run. Triggers the workflow on push or pull request
-# events but only for the master branch
 on:
   push:
-    branches: [ main ]
+    branches:
+      - build
+    paths-ignore:
+      - '.github/**'
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
-    - uses: actions/checkout@v2
-    - name: Use Node.js
-      uses: actions/setup-node@v1
-      with:
-        node-version: 12
-    - name: Install MTA Build Tool
-      run: npm install -g mbt
-    # Do not generate package-lock.json
-    # See https://blogs.sap.com/2020/07/07/escaping-eintegrity-hell/
-    - name: Disable package-lock.json
-      run: npm config set package-lock false
-    - name: Build MTA
-      run: npm run build:mta
-    - name: Upload Artifact
-      uses: actions/upload-artifact@master	
-      with:	
-        name: mta
-        path: ./mta_archives/cap-github-actions_1.0.0.mtar
-        
-  deploy:
-     needs: build
-     runs-on: ubuntu-latest
-     steps:
-       - name: Download Artifact
-         uses: actions/download-artifact@master
-         with:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: pwd
+        run: pwd
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 14
+          cache: 'npm'
+      - name: Check node version
+        run: node --version
+      - name: Install MTA Build Tool
+        run: npm install -g mbt
+      - name: Copy XSA .pipeline/config.yml
+        run: cp .pipeline/config-xsa.yml .pipeline/config.yml
+      - name: Copy XSA mta.yaml
+        run: cp mta-xsa.yaml mta.yaml
+      - name: Install Packages
+        run: npm install ci
+      - name: mtaBuild
+        uses: SAP/project-piper-action@master
+        with:
+          command: mtaBuild
+      - name: Upload archive file
+        uses: actions/upload-artifact@v2
+        with:
            name: mta
-           path: ./
-       - name: Deploy to Cloud Foundry
-         uses: guerric-p/cf-cli-action@master
-         with:
-           cf_api: ${{ secrets.CF_API }}
-           cf_username: ${{ secrets.CF_USERNAME }}
-           cf_password: ${{ secrets.CF_PASSWORD }}
-           cf_org: ${{ secrets.CF_ORG }}
-           cf_space: ${{ secrets.CF_SPACE }}
-           command: deploy ./cap-github-actions_1.0.0.mtar -f
+           path: bookshop-demo-xsa.mtar
+  deploy:
+    needs: build
+    runs-on: self-hosted
+    environment: 
+      name: dev
+      # url: 
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Copy XSA .pipeline/config.yml
+        run: cp .pipeline/config-xsa.yml .pipeline/config.yml
+      - uses: actions/download-artifact@v3
+        with:
+          name: mta
+      - name: Display structure of downloaded files
+        run: ls -R
+      - name: xsDeploy
+        uses: SAP/project-piper-action@master
+        with:
+          command: xsDeploy
+        env:
+          PIPER_username: ${{ secrets.PIPER_USERNAME }}
+          PIPER_password: ${{ secrets.PIPER_PASSWORD }}
